@@ -14,8 +14,8 @@
 ```text
 共享单车预测/
 ├── hour.csv               # 数据集
-├── P1.py                  # Part 1: 数据探索与可视化 (EDA)
-├── P2.py                  # Part 2: 特征工程与基线模型建立
+├── eda.py                  # Part 1: 数据探索与可视化 (EDA)
+├── baseline.py                  # Part 2: 特征工程与基线模型建立
 ├── figures/               # 存放生成的图表 
 └── README.md
 ```

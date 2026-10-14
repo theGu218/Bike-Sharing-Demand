@@ -16,7 +16,7 @@
 ├── hour.csv               # 数据集
 ├── eda.py                  # Part 1: 数据探索与可视化 (EDA)
 ├── baseline.py              # Part 2: 特征工程与基线模型建立
-├── p3.py                    #Part 3 ：把评估协议定死
+├── evaluation_protocol.py       #Part 3 ：模型评估协议确定
 ├── figures/               # 存放生成的图表 
 └── README.md
 ```

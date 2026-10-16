@@ -17,8 +17,6 @@ df = pd.read_csv('hour.csv')
 ③ 指标：RMSE
 ④ 适用范围：用过去的数据预测未来半年的小时租借量，取决于预测的是未来哪一段。因此不适用于精细化的实时车辆调度。
 
-
-
 '''
 
 
@@ -69,7 +67,23 @@ print('D的rmse为：',evaluate_model(X_d, y))
 每个 degree 记两个数：训练 RMSE（在自己训练的那 80% 上）和留出 RMSE（在那 20% 上）。
 
 '''
+
 result = []
+def model_fit(X_train,X_test,y_train,y_test):
+    
+    model = LinearRegression() 
+    model.fit(X_train,y_train)
+    y_pred_train = model.predict(X_train)
+    y_pred_test = model.predict(X_test)
+    y_rmse_test = np.sqrt(mean_squared_error(y_test,y_pred_test))
+    y_rmse_train = np.sqrt(mean_squared_error(y_train,y_pred_train))
+    return {
+       'degree' :d,
+       'features':Xp.shape[1],
+       'rmse_train':y_rmse_train,
+       'rmse_test':y_rmse_test
+       }
+    
 
 for d in [1, 2, 3, 4, 5, 6, 8]:
     pf = PolynomialFeatures(degree=d, include_bias=False)
@@ -77,20 +91,11 @@ for d in [1, 2, 3, 4, 5, 6, 8]:
     n = int(len(df) * 0.8)
     X_train, X_test = Xp[:n], Xp[n:]
     y_train, y_test = y.iloc[:n], y.iloc[n:]
-    model = LinearRegression() 
-    model.fit(X_train,y_train)
-    y_pred_train = model.predict(X_train)
-    y_pred_test = model.predict(X_test)
-    y_rmse_test = np.sqrt(mean_squared_error(y_test,y_pred_test))
-    y_rmse_train = np.sqrt(mean_squared_error(y_train,y_pred_train))
-    result.append({
-       'degree' :d,
-       'features':Xp.shape[1],
-       'rmse_train':y_rmse_train,
-       'rmse_test':y_rmse_test
+    result.append(model_fit(X_train,X_test,y_train,y_test))
+    result_rmse = result
 
-    })
-df_rmse = pd.DataFrame(result)
+    
+df_rmse = pd.DataFrame(result_rmse)
 print(df_rmse)
 
 '''
@@ -130,26 +135,14 @@ KFold(n_splits=5, shuffle=True) 的均值
 
 '''
 
-result = []
+result_rmse = []
 for d in [1, 2, 3, 4, 5, 6, 8]:
     pf = PolynomialFeatures(degree=d, include_bias=False)
     Xp = pf.fit_transform(df[['temp','atemp','hum','windspeed']])
     X_train,X_test,y_train,y_test = train_test_split(Xp, y, test_size=0.2, random_state=42)
-    model = LinearRegression() 
-    model.fit(X_train,y_train)
-    y_pred_train = model.predict(X_train)
-    y_pred_test = model.predict(X_test)
-    y_rmse_test = np.sqrt(mean_squared_error(y_test,y_pred_test))
-    y_rmse_train = np.sqrt(mean_squared_error(y_train,y_pred_train))
-    result.append({
-       'degree' :d,
-       'features':Xp.shape[1],
-       'rmse_train':y_rmse_train,
-       'rmse_test':y_rmse_test
-
-    })
-df_rmse = pd.DataFrame(result)
-print(df_rmse)
+    result_rmse.append(model_fit(X_train,X_test,y_train,y_test))
+df_rmse2 = pd.DataFrame(result_rmse)
+print(df_rmse2)
 
 result = []
 for d in [1, 2, 3, 4, 5, 6, 8]:
@@ -208,6 +201,13 @@ plt.xlabel('RMSE')
 plt.grid(axis='x', linestyle='--', alpha=0.7)
 plt.savefig('figures/hr_encoding_comparison.png')
 plt.show()
+
+  
+    
+    
+
+
+
 
   
     

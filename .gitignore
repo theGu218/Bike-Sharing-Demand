@@ -1,22 +1,28 @@
-
+# ── 虚拟环境 ──
 .venv/
+.venv_unused/
 venv/
 env/
 
-
-__pycache_/
+# ── Python ──
+__pycache__/
 *.py[cod]
 *$py.class
 .ipynb_checkpoints/
 
-
+# ── 编辑器 ──
 .vscode/
 .idea/
 *.swp
 
-
+# ── 系统 ──
 .DS_Store
 Thumbs.db
 
-
+# ── 环境变量 ──
 .env
+
+# ── 数据文件
+hour.csv
+day.csv
+*.zip

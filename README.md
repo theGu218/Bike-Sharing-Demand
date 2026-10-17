@@ -1,7 +1,7 @@
 # 共享单车需求预测：在真实数据上跑通线性模型
 > 观前提醒：本项目为本人大学期间机器学习学习之作，代码涉及较广，仅供参考使用。如果能帮到您将不胜荣幸。
 >
-> 用一个真实的回归数据集（UCI Bike Sharing，17,379 条小时级记录），把模型评估与选择和线性模型的核心概念逐个落到代码上。
+> 用一个真实的回归数据集（UCI Bike Sharing，17,379 条小时级记录），把《机器学习》第 2 章（模型评估与选择）和第 3 章（线性模型）的核心概念逐个落到代码上。
 >
 > 项目的重点在于把评估协议做对，也就是搞清楚什么分数是真的，什么分数是自己骗自己。
 > 也就是说，这是一个"评估方法比模型本身更重要"的项目。
@@ -10,15 +10,15 @@
 
 ## 1. 这个项目在做什么
 
-核心任务是**回归**：根据某一小时的气象与日历信息，预测该小时的共享单车租借量（`cnt`）。
+核心任务是回归：根据某一小时的气象与日历信息，预测该小时的共享单车租借量（`cnt`）。
 
 之所以选择这个数据集是因为它同时具备三个特征，正好能撑起"评估与选择"这一部分的全部讨论：
 
 | 特征 | 能用来演示什么 |
 |---|---|
-| 存在真实的时间结构,( 2011-01 ~ 2012-12，按小时划分) | 随机切分为什么会让分数虚高；时序留出/TSS 为什么更可信 |
-| 存在明显的分布漂移，例如2012 年租借量远高于 2011 年  | 评估协议的选择会直接改变结论 |
-| 特征里埋了强共线性，比如`temp` 与 `atemp` 相关系数 0.9877 和类别变量如 `hr`、`season`等 | 正则化、特征编码为什么必要 |
+| 存在真实的时间结构（2011-01 ~ 2012-12，按小时划分） | 随机切分为什么会让分数虚高；时序留出/TSS 为什么更可信 |
+| 存在明显的分布漂移，例如 2012 年租借量远高于 2011 年 | 评估协议的选择会直接改变结论 |
+| 特征里埋了强共线性，比如 `temp` 与 `atemp` 相关系数 0.9877，以及 `hr`、`season` 等类别变量 | 正则化、特征编码为什么必要 |
 
 
 
@@ -37,13 +37,13 @@
 
 将 `hour.csv` 放在项目根目录（与 `eda.py` 和 `baseline.py` 同级）。
 
-列说明:索引/日期：`instant`(行号，无预测价值)、`dteday`(日期),不作为特征值进行处理。
+列说明 —— 索引/日期：`instant`（行号，无预测价值）、`dteday`（日期），不作为特征值处理。
 
 
->  注意：`casual` + `registered` = `cnt`，用它们做特征是标签泄漏。 本项目的所有实验只用 12 个特征列，从不使用这两个字段。相关性矩阵会显示 `registered` 与 `cnt` 的相关系数高达 0.972，即泄漏在数据的表现形式。
+>  注意：`casual` + `registered` = `cnt`，用它们做特征是标签泄漏。本项目的所有实验只用 12 个特征列，从不使用这两个字段。相关性矩阵会显示 `registered` 与 `cnt` 的相关系数高达 0.972，这就是泄漏在数据上的表现形式。
 
 关于`temp`、`atemp`、`hum`、`windspeed` 都是已归一化的值，不是原始物理量。
-`temp` 除以 41 之后得到的才是摄氏度，实际范围约 −7.06 °C ~ 39.0 °C。
+`temp` 必须按 Readme 给的反推参数换算（`temp × 47 − 8`）才是摄氏度，实际范围约 −7.06 °C ~ 39.0 °C。
 
 > 数据文件不纳入版本控制（见 `.gitignore`），请按上面的地址自行下载。
 
@@ -54,24 +54,23 @@
 ```
 .
 ├── README.md                    本文件
-├── hour.csv                     数据文件（需自行下载，不入库）
-│
+├── hour.csv                     数据文件
+│——data
 ├── eda.py                       
 ├── baseline.py                 
 ├── evaluation_protocol.py       
 ├── overfitting.py               
 ├── regularization.py           
-├── figures/                     全部图表输出
-│   ├── Bike rentals by hour.png
-│   ├── heatmap.png
-│   ├── collinearity_scatter.png
-│   ├── overfitting_curve.png
-│   ├── hr_encoding_comparison.png
-│   ├── ridge_coef_path.png
-│   └── ridge_rmse.png
-│
-└── data/
-    └── README.md                数据来源说明
+└── figures/                     全部图表输出
+    ├── Bike rentals by hour.png
+    ├── heatmap.png
+    ├── collinearity_scatter.png
+    ├── overfitting_curve.png
+    ├── hr_encoding_comparison.png
+    ├── ridge_coef_path.png
+    └── ridge_rmse.png
+|——data/
+   |——README.md                  数据说明
 ```
 ---
 ## 4. 运行
@@ -127,7 +126,7 @@ python overfitting.py; python regularization.py
 | 5 折 TimeSeriesSplit | 168.94 ± 34.33 |
 
 原因已定位：测试段（2012-08-07 ~ 12-31）的 `cnt` 均值 248.75，训练段只有 174.64（差 43%）；标准差也从 166.96 涨到 220.52。
-这说明不是模型变差了，是评估条件变真实了。 TimeSeriesSplit 各折为 138.56 ， 123.79 ， 167.95 ， 206.10 ， 208.32，全距 84.5，均值本身已经不足以描述模型表现。
+这说明不是模型变差了，是评估条件变真实了。 TimeSeriesSplit 各折为 138.56 / 123.79 / 167.95 / 206.10 / 208.32，全距 84.5，均值本身已经不足以描述模型表现。
 
 ### 2. "用全部数据拟合"并没有让分数变好
 
@@ -148,7 +147,7 @@ python overfitting.py; python regularization.py
 | `sin` / `cos` | +2 | 184.32 | 149.39 |
 | **独热编码** | **+24** | **157.98** | **127.09** |
 
-只换表达方式，RMSE 从 200.27 降到 127.09（好了 37%）——比 P5 里试过的所有正则化手段加起来都管用。独热能保住 17~18 点的尖峰（461.45），`sin/cos` 只能给出平滑周期，做不到。
+只换表达方式，RMSE 从 200.27 降到 127.09（好了 37%）——比在线性模型上试过的所有正则化手段加起来都管用。独热能保住 17~18 点的尖峰（461.45），`sin/cos` 只能给出平滑周期，做不到。
 
 而训练误差对此毫无反应：1 阶到 8 阶，训练 RMSE 从 141.90 只降到 136.46（4%），测试误差却从 209.54 炸到 2945.78。
 
@@ -165,7 +164,7 @@ python overfitting.py; python regularization.py
 
 其余图表（共线散点、`hr` 编码对比、Ridge 系数路径、α 扫描）见 `figures/`。
 
-----
+---
 
 
 ## 8. 局限与后续计划
@@ -194,13 +193,3 @@ python overfitting.py; python regularization.py
 
 - **数据**：Fanaee-T, H. and Gama, J. (2014). *Event labeling combining ensemble detectors and background knowledge.* Progress in Artificial Intelligence, 2(2-3), 113-127. 数据集发布于 [UCI ML Repository](https://archive.ics.uci.edu/dataset/275/bike+sharing+dataset)，采用 **CC BY 4.0** 许可。
 - **本项目代码**：MIT License。
-
-
-
-
-
-
-
-
-
-

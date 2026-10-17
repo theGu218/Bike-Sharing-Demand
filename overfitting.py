@@ -190,7 +190,7 @@ print(df_kf_rmse)
 
 
 models = ['no hr', 'hr', 'get_dummies_hr']
-rmse_values = [209.5, 200.3, 157.9] 
+rmse_values = [rmse_a, rmse_b, rmse_c]   
 
 plt.figure(2,figsize=(8, 4))
 plt.barh(models, rmse_values, height=0.5)
